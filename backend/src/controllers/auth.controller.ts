@@ -3,7 +3,11 @@ import type { LoginInput, RegisterInput } from "../schemas/auth.schema";
 import { ApiError, BadRequestError, NotFoundError } from "../utils/ApiError";
 import { User } from "../model/user.model";
 import { ApiResponse } from "../utils/ApiResponse";
-import { generateAccessToken, generateRefreshToken } from "../utils/token";
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  verifyRefreshToken,
+} from "../utils/token";
 
 export class AuthController {
   static async register(req: Request, res: Response): Promise<void> {
@@ -131,6 +135,62 @@ export class AuthController {
     } catch (error) {
       console.log("Something went wrong with logout handler", error);
       throw new ApiError("Something went wrong with logout handler");
+    }
+  }
+
+  static async me(req: Request, res: Response): Promise<void> {
+    const payload = req.user;
+    if (!payload?.id) {
+      throw new ApiError("Something went wrong with logout handler");
+    }
+
+    const user = await User.findById(payload.id);
+
+    if (!user) {
+      throw new NotFoundError("User not found!");
+    }
+
+    res.status(200).json(
+      new ApiResponse(
+        200,
+        {
+          user: { name: user.name, email: user.email, role: user.role },
+        },
+        "User found!"
+      )
+    );
+  }
+
+  static async refresh(req: Request, res: Response): Promise<void> {
+    const incomingRefreshToken =
+      req.cookies.refreshToken || req.body.refreshToken;
+
+    if (!incomingRefreshToken) {
+      throw new BadRequestError("Refresh token not found");
+    }
+    try {
+      const payload = verifyRefreshToken(incomingRefreshToken);
+      const user = await User.findById(payload?.sub);
+      if (!user) {
+        throw new ApiError("Invalid refresh token");
+      }
+
+      if (incomingRefreshToken !== user?.refreshToken) {
+        throw new ApiError("Refresh token is expired or used");
+      }
+
+      const accessToken = generateAccessToken(user);
+      res
+        .status(200)
+        .json(
+          new ApiResponse(
+            200,
+            { token: accessToken },
+            "User refresh successfull"
+          )
+        );
+    } catch (error: any) {
+      throw new ApiError(error.message);
     }
   }
 }
