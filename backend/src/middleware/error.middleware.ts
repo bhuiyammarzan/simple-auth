@@ -1,4 +1,3 @@
-// src/middlewares/error.middleware.ts
 import { Request, Response, NextFunction } from "express";
 import { ApiError } from "../utils/ApiError";
 
@@ -18,7 +17,7 @@ export const errorHandler = (
         return res.status(statusCode).json({
           success: isSuccess,
           message: isProd ? "Internal server error" : err.message,
-          fields: err.details,
+          errors: err.details,
         });
       } else {
         return res.status(statusCode).json({
