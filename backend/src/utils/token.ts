@@ -60,5 +60,5 @@ export const verifyRefreshToken = (token: string): string | JwtPayload => {
     throw new ApiError("JWT_REFRESH_TOKEN_SECRET is not configured");
   }
 
-  return jwt.verify(token, secret);
+  return jwt.verify(token, secret) as { sub: string };
 };

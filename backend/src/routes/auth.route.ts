@@ -11,5 +11,8 @@ router.post("/login", validate(loginSchema), AuthController.login);
 
 // private route
 router.post("/logout", isAuthenticated, AuthController.logout);
+router.get("/me", isAuthenticated, AuthController.me);
+
+router.post("/refresh-token", AuthController.refresh);
 
 export default router;
