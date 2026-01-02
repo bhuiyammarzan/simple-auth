@@ -1,6 +1,9 @@
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import { useAuthContext } from "../hooks/useAuthContext";
 
 const Header = () => {
+  const { isAuthenticated, logout } = useAuthContext();
+  const navigate = useNavigate();
   return (
     <header className="p-4 dark:bg-gray-100 dark:text-gray-800">
       <div className="container flex justify-between h-16 mx-auto">
@@ -62,15 +65,29 @@ const Header = () => {
           </li>
         </ul>
         <div className="items-center shrink-0 hidden lg:flex">
-          <Link to={"login"} className="self-center px-8 py-3 rounded">
-            Sign in
-          </Link>
-          <Link
-            to={"register"}
-            className="self-center px-8 py-3 font-semibold rounded dark:bg-violet-600 dark:text-gray-50"
-          >
-            Sign up
-          </Link>
+          {isAuthenticated ? (
+            <button
+              onClick={() => {
+                logout();
+                navigate("/");
+              }}
+              className="self-center px-8 py-3 rounded hover:text-violet-600 cursor-pointer"
+            >
+              Logout
+            </button>
+          ) : (
+            <>
+              <Link to={"login"} className="self-center px-8 py-3 rounded">
+                Sign in
+              </Link>
+              <Link
+                to={"register"}
+                className="self-center px-8 py-3 font-semibold rounded dark:bg-violet-600 dark:text-gray-50"
+              >
+                Sign up
+              </Link>
+            </>
+          )}
         </div>
         <button className="p-4 lg:hidden">
           <svg

@@ -1,9 +1,12 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, type LoginInput } from "../schemas/auth.schema";
 import { useForm } from "react-hook-form";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuthContext } from "../hooks/useAuthContext";
 
 const Login = () => {
+  const { login } = useAuthContext();
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -22,8 +25,11 @@ const Login = () => {
   const onSubmit = async (formData: LoginInput) => {
     const isValid = await trigger();
     if (!isValid) return;
-    console.log("formData", formData);
+
+    await login(formData);
+
     reset();
+    navigate("/dashboard");
   };
   return (
     <div className="flex items-center justify-center">

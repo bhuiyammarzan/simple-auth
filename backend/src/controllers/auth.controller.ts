@@ -183,11 +183,7 @@ export class AuthController {
       res
         .status(200)
         .json(
-          new ApiResponse(
-            200,
-            { token: accessToken },
-            "User refresh successfull"
-          )
+          new ApiResponse(200, { accessToken }, "User refresh successfull")
         );
     } catch (error: any) {
       throw new ApiError(error.message);
