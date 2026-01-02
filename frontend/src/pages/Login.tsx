@@ -1,37 +1,72 @@
+import { zodResolver } from "@hookform/resolvers/zod";
+import { loginSchema, type LoginInput } from "../schemas/auth.schema";
+import { useForm } from "react-hook-form";
+import { Link } from "react-router-dom";
+
 const Login = () => {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    trigger,
+    reset,
+  } = useForm<LoginInput>({
+    resolver: zodResolver(loginSchema),
+    mode: "onChange",
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  const onSubmit = async (formData: LoginInput) => {
+    const isValid = await trigger();
+    if (!isValid) return;
+    console.log("formData", formData);
+    reset();
+  };
   return (
     <div className="flex items-center justify-center">
       <div className="w-full max-w-md p-8 space-y-3 rounded-xl text-gray-800">
         <h1 className="text-2xl font-bold text-center">Login</h1>
-        <form action="" className="space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="space-y-1 text-sm">
             <label htmlFor="username" className="block dark:text-gray-600">
               Email
             </label>
             <input
+              {...register("email")}
               type="email"
               placeholder="Email"
               className="w-full px-4 py-3 rounded-md dark:border-gray-300 dark:bg-gray-50 dark:text-gray-800 focus:dark:border-violet-600"
             />
+            {errors.email?.message && (
+              <p className="text-red-500">{errors.email?.message}</p>
+            )}
           </div>
           <div className="space-y-1 text-sm">
             <label htmlFor="password" className="block dark:text-gray-600">
               Password
             </label>
             <input
+              {...register("password")}
               type="password"
-              name="password"
-              id="password"
               placeholder="Password"
               className="w-full px-4 py-3 rounded-md dark:border-gray-300 dark:bg-gray-50 dark:text-gray-800 focus:dark:border-violet-600"
             />
+            {errors.password?.message && (
+              <p className="text-red-500">{errors.password?.message}</p>
+            )}
             <div className="flex justify-end text-xs dark:text-gray-600">
               <a rel="noopener noreferrer" href="#">
                 Forgot Password?
               </a>
             </div>
           </div>
-          <button className="block w-full p-3 text-center rounded-sm dark:text-gray-50 dark:bg-violet-600">
+          <button
+            type="submit"
+            className="block w-full p-3 text-center rounded-sm dark:text-gray-50 dark:bg-violet-600"
+          >
             Sign in
           </button>
         </form>
@@ -73,13 +108,9 @@ const Login = () => {
         </div>
         <p className="text-xs text-center sm:px-6 dark:text-gray-600">
           Don't have an account?
-          <a
-            rel="noopener noreferrer"
-            href="#"
-            className="underline dark:text-gray-800"
-          >
+          <Link to={"/register"} className="underline dark:text-gray-800">
             Sign up
-          </a>
+          </Link>
         </p>
       </div>
     </div>

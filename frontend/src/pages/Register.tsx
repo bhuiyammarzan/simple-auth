@@ -1,50 +1,121 @@
-import { Link } from "react-router-dom";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { Link, useNavigate } from "react-router-dom";
+import { registerSchema, type RegisterInput } from "../schemas/auth.schema";
+import { useMutation } from "@tanstack/react-query";
+import { registerRequest } from "../api/auth.api";
+import { toast } from "react-toastify";
 
 const Register = () => {
+  const navigate = useNavigate();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    trigger,
+    reset,
+  } = useForm<RegisterInput>({
+    resolver: zodResolver(registerSchema),
+    mode: "onChange",
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+    },
+  });
+
+  const registerMutation = useMutation({
+    mutationFn: registerRequest,
+  });
+
+  const onSubmit = async (formData: RegisterInput) => {
+    const isValid = await trigger();
+    if (!isValid) return;
+
+    const toastId = toast.loading("Registering user...");
+
+    registerMutation.mutate(formData, {
+      onSuccess: (data) => {
+        console.log("DATA", data);
+        toast.update(toastId, {
+          render: "Registration successful 🎉",
+          type: "success",
+          isLoading: false,
+          autoClose: 3000,
+        });
+        reset();
+        navigate("/login");
+      },
+      onError: (error) => {
+        console.log("ERROR", error);
+        toast.update(toastId, {
+          render: "Something went wrong ❌",
+          type: "error",
+          isLoading: false,
+          autoClose: 3000,
+        });
+      },
+    });
+  };
+
   return (
     <div className="flex items-center justify-center">
       <div className="w-full max-w-md p-8 space-y-3 rounded-xl text-gray-800">
         <h1 className="text-2xl font-bold text-center">Register</h1>
-        <form action="" className="space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="space-y-1 text-sm">
             <label htmlFor="username" className="block dark:text-gray-600">
               Name
             </label>
             <input
+              {...register("name")}
               type="text"
               placeholder="Name"
               className="w-full px-4 py-3 rounded-md dark:border-gray-300 dark:bg-gray-50 dark:text-gray-800 focus:dark:border-violet-600"
             />
+            {errors.name?.message && (
+              <p className="text-red-500">{errors.name?.message}</p>
+            )}
           </div>
           <div className="space-y-1 text-sm">
             <label htmlFor="username" className="block dark:text-gray-600">
               Email
             </label>
             <input
+              {...register("email")}
               type="text"
               placeholder="Email"
               className="w-full px-4 py-3 rounded-md dark:border-gray-300 dark:bg-gray-50 dark:text-gray-800 focus:dark:border-violet-600"
             />
+            {errors.email?.message && (
+              <p className="text-red-500">{errors.email?.message}</p>
+            )}
           </div>
           <div className="space-y-1 text-sm">
             <label htmlFor="password" className="block dark:text-gray-600">
               Password
             </label>
             <input
+              {...register("password")}
               type="password"
-              name="password"
-              id="password"
               placeholder="Password"
               className="w-full px-4 py-3 rounded-md dark:border-gray-300 dark:bg-gray-50 dark:text-gray-800 focus:dark:border-violet-600"
             />
+            {errors.password?.message && (
+              <p className="text-red-500">{errors.password?.message}</p>
+            )}
             <div className="flex justify-end text-xs dark:text-gray-600">
               <a rel="noopener noreferrer" href="#">
                 Forgot Password?
               </a>
             </div>
           </div>
-          <button className="block w-full p-3 text-center rounded-sm dark:text-gray-50 dark:bg-violet-600">
-            Sign in
+          <button
+            type="submit"
+            disabled={registerMutation.isPending}
+            className="block w-full p-3 text-center rounded-sm text-gray-50 bg-violet-600 cursor-pointer"
+          >
+            Sign up
           </button>
         </form>
         <div className="flex items-center pt-4 space-x-1">
